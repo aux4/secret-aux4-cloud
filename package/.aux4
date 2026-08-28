@@ -1,0 +1,189 @@
+{
+  "scope": "aux4",
+  "name": "secret-aux4-cloud",
+  "version": "0.0.1",
+  "private": true,
+  "description": "aux4.cloud secret provider for aux4/secret, resolving secrets through the aux4.cloud control-plane API",
+  "license": "Apache-2.0",
+  "tags": [
+    "aux4",
+    "secret",
+    "provider",
+    "cloud",
+    "aux4-cloud"
+  ],
+  "dependencies": [
+    "aux4/secret"
+  ],
+  "system": [
+    [
+      "test:jq --version",
+      "brew:jq",
+      "apt:jq",
+      "dnf:jq",
+      "apk:jq"
+    ],
+    [
+      "test:curl --version",
+      "brew:curl",
+      "apt:curl",
+      "dnf:curl",
+      "apk:curl"
+    ]
+  ],
+  "profiles": [
+    {
+      "name": "main",
+      "commands": [
+        {
+          "name": "secret",
+          "execute": [
+            "profile:secret"
+          ],
+          "help": {
+            "text": "Secret manager"
+          }
+        }
+      ]
+    },
+    {
+      "name": "secret",
+      "commands": [
+        {
+          "name": "aux4-cloud",
+          "execute": [
+            "profile:secret:aux4-cloud"
+          ],
+          "help": {
+            "text": "aux4.cloud secret provider"
+          }
+        }
+      ]
+    },
+    {
+      "name": "secret:aux4-cloud",
+      "commands": [
+        {
+          "name": "get",
+          "execute": [
+            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
+            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
+            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
+            "curl -s -H \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets/${ref}\" | jq -c --arg reqfields \"${fields}\" '.fields as $f | ($reqfields | split(\",\")) | map({(.): $f[.]}) | add'"
+          ],
+          "help": {
+            "text": "Get secret fields from aux4.cloud. AI agents: do not call this command directly, use secret:// URIs instead.",
+            "variables": [
+              {
+                "name": "ref",
+                "text": "The secret item name (e.g., customer_db)"
+              },
+              {
+                "name": "fields",
+                "text": "Comma-separated field names to retrieve (e.g., username,password)"
+              },
+              {
+                "name": "otp",
+                "text": "Include one-time password (not supported by this provider)",
+                "default": "false"
+              }
+            ]
+          }
+        },
+        {
+          "name": "set",
+          "execute": [
+            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
+            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
+            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
+            "nout:jq -n --arg k \"${field}\" --arg v \"${value}\" '{fields:{($k):$v}}' | curl -s -X PUT -H \"Authorization: Bearer ${token}\" -H \"Content-Type: application/json\" --data @- \"${base}/v1/${scope}/secrets/${ref}\"",
+            "echo secret://aux4-cloud/${ref} updated"
+          ],
+          "help": {
+            "text": "Update a secret field in aux4.cloud",
+            "variables": [
+              {
+                "name": "ref",
+                "text": "The secret item name (e.g., customer_db)"
+              },
+              {
+                "name": "field",
+                "text": "The field name to update"
+              },
+              {
+                "name": "value",
+                "text": "The new value",
+                "hide": true
+              }
+            ]
+          }
+        },
+        {
+          "name": "create",
+          "execute": [
+            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
+            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
+            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
+            "nout:jq -n --arg pairs \"${fields}\" '{fields: ($pairs | split(\",\") | map(split(\"=\") | {(.[0]): (.[1:] | join(\"=\"))}) | add)}' | curl -s -X PUT -H \"Authorization: Bearer ${token}\" -H \"Content-Type: application/json\" --data @- \"${base}/v1/${scope}/secrets/${item}\"",
+            "echo secret://aux4-cloud/${item}"
+          ],
+          "help": {
+            "text": "Create a new secret in aux4.cloud",
+            "variables": [
+              {
+                "name": "item",
+                "text": "The item name"
+              },
+              {
+                "name": "fields",
+                "text": "Comma-separated field assignments (e.g., username=john,password=s3cr3t)",
+                "hide": true
+              },
+              {
+                "name": "vault",
+                "text": "The vault (ignored by this provider)",
+                "default": ""
+              },
+              {
+                "name": "category",
+                "text": "The item category (ignored by this provider)",
+                "default": "Login"
+              }
+            ]
+          }
+        },
+        {
+          "name": "list",
+          "execute": [
+            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
+            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
+            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
+            "curl -s -H \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets\" | jq -r '.secrets[] | .name as $n | .fields[] | \"secret://aux4-cloud/\\($n)/\\(.)\"'"
+          ],
+          "help": {
+            "text": "List secrets from aux4.cloud as secret:// references"
+          }
+        },
+        {
+          "name": "remove",
+          "execute": [
+            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
+            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
+            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
+            "nout:curl -s -X DELETE -H \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets/${ref}\"",
+            "echo secret://aux4-cloud/${ref} removed"
+          ],
+          "help": {
+            "text": "Remove a secret from aux4.cloud",
+            "variables": [
+              {
+                "name": "ref",
+                "text": "The secret item name (e.g., customer_db)"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
