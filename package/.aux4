@@ -2,7 +2,6 @@
   "scope": "aux4",
   "name": "secret-aux4-cloud",
   "version": "0.0.1",
-  "private": true,
   "description": "aux4.cloud secret provider for aux4/secret, resolving secrets through the aux4.cloud control-plane API",
   "license": "Apache-2.0",
   "tags": [
