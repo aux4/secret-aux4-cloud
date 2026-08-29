@@ -12,23 +12,9 @@
     "aux4-cloud"
   ],
   "dependencies": [
-    "aux4/secret"
-  ],
-  "system": [
-    [
-      "test:jq --version",
-      "brew:jq",
-      "apt:jq",
-      "dnf:jq",
-      "apk:jq"
-    ],
-    [
-      "test:curl --version",
-      "brew:curl",
-      "apt:curl",
-      "dnf:curl",
-      "apk:curl"
-    ]
+    "aux4/secret",
+    "aux4/curl",
+    "aux4/json"
   ],
   "profiles": [
     {
@@ -65,10 +51,8 @@
         {
           "name": "get",
           "execute": [
-            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
-            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
-            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
-            "curl -s -H \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets/${ref}\" | jq -c --arg reqfields \"${fields}\" '.fields as $f | ($reqfields | split(\",\")) | map({(.): $f[.]}) | add'"
+            "set:token=!aux4 secret aux4-cloud resolve-token",
+            "aux4 curl request --header \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets/${ref}\" < /dev/null | aux4 json get '$.fields' | aux4 json select \"${fields}\""
           ],
           "help": {
             "text": "Get secret fields from aux4.cloud. AI agents: do not call this command directly, use secret:// URIs instead.",
@@ -85,6 +69,22 @@
                 "name": "otp",
                 "text": "Include one-time password (not supported by this provider)",
                 "default": "false"
+              },
+              {
+                "name": "token",
+                "text": "Bearer token; defaults to CLOUD_SYNC_TOKEN, falling back to the logged-in aux4 token",
+                "env": "CLOUD_SYNC_TOKEN",
+                "default": ""
+              },
+              {
+                "name": "base",
+                "text": "aux4.cloud API base URL",
+                "env": "AUX4_CLOUD_API_URL"
+              },
+              {
+                "name": "scope",
+                "text": "aux4.cloud scope",
+                "env": "AUX4_CLOUD_SCOPE"
               }
             ]
           }
@@ -92,10 +92,9 @@
         {
           "name": "set",
           "execute": [
-            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
-            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
-            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
-            "nout:jq -n --arg k \"${field}\" --arg v \"${value}\" '{fields:{($k):$v}}' | curl -s -X PUT -H \"Authorization: Bearer ${token}\" -H \"Content-Type: application/json\" --data @- \"${base}/v1/${scope}/secrets/${ref}\"",
+            "set:token=!aux4 secret aux4-cloud resolve-token",
+            "set:payload=object(value:${field})",
+            "nout:aux4 curl request --method PUT --header \"Authorization: Bearer ${token}\" --header \"Content-Type: application/json\" --body value(payload) \"${base}/v1/${scope}/secrets/${ref}\" < /dev/null",
             "echo secret://aux4-cloud/${ref} updated"
           ],
           "help": {
@@ -113,6 +112,22 @@
                 "name": "value",
                 "text": "The new value",
                 "hide": true
+              },
+              {
+                "name": "token",
+                "text": "Bearer token; defaults to CLOUD_SYNC_TOKEN, falling back to the logged-in aux4 token",
+                "env": "CLOUD_SYNC_TOKEN",
+                "default": ""
+              },
+              {
+                "name": "base",
+                "text": "aux4.cloud API base URL",
+                "env": "AUX4_CLOUD_API_URL"
+              },
+              {
+                "name": "scope",
+                "text": "aux4.cloud scope",
+                "env": "AUX4_CLOUD_SCOPE"
               }
             ]
           }
@@ -120,10 +135,8 @@
         {
           "name": "create",
           "execute": [
-            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
-            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
-            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
-            "nout:jq -n --arg pairs \"${fields}\" '{fields: ($pairs | split(\",\") | map(split(\"=\") | {(.[0]): (.[1:] | join(\"=\"))}) | add)}' | curl -s -X PUT -H \"Authorization: Bearer ${token}\" -H \"Content-Type: application/json\" --data @- \"${base}/v1/${scope}/secrets/${item}\"",
+            "set:token=!aux4 secret aux4-cloud resolve-token",
+            "nout:aux4 curl request --method PUT --header \"Authorization: Bearer ${token}\" --header \"Content-Type: application/json\" --body value(fields) \"${base}/v1/${scope}/secrets/${item}\" < /dev/null",
             "echo secret://aux4-cloud/${item}"
           ],
           "help": {
@@ -135,7 +148,7 @@
               },
               {
                 "name": "fields",
-                "text": "Comma-separated field assignments (e.g., username=john,password=s3cr3t)",
+                "text": "Field values as dot-notation flags (e.g., --fields.username john --fields.password s3cr3t)",
                 "hide": true
               },
               {
@@ -147,6 +160,22 @@
                 "name": "category",
                 "text": "The item category (ignored by this provider)",
                 "default": "Login"
+              },
+              {
+                "name": "token",
+                "text": "Bearer token; defaults to CLOUD_SYNC_TOKEN, falling back to the logged-in aux4 token",
+                "env": "CLOUD_SYNC_TOKEN",
+                "default": ""
+              },
+              {
+                "name": "base",
+                "text": "aux4.cloud API base URL",
+                "env": "AUX4_CLOUD_API_URL"
+              },
+              {
+                "name": "scope",
+                "text": "aux4.cloud scope",
+                "env": "AUX4_CLOUD_SCOPE"
               }
             ]
           }
@@ -154,22 +183,80 @@
         {
           "name": "list",
           "execute": [
-            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
-            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
-            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
-            "curl -s -H \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets\" | jq -r '.secrets[] | .name as $n | .fields[] | \"secret://aux4-cloud/\\($n)/\\(.)\"'"
+            "set:token=!aux4 secret aux4-cloud resolve-token",
+            "json:aux4 curl request --header \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets\" < /dev/null | aux4 json get '$.secrets'",
+            "each:aux4 secret aux4-cloud print-refs --name '${item.name}' --fields value(item.fields)"
           ],
           "help": {
-            "text": "List secrets from aux4.cloud as secret:// references"
+            "text": "List secrets from aux4.cloud as secret:// references",
+            "variables": [
+              {
+                "name": "token",
+                "text": "Bearer token; defaults to CLOUD_SYNC_TOKEN, falling back to the logged-in aux4 token",
+                "env": "CLOUD_SYNC_TOKEN",
+                "default": ""
+              },
+              {
+                "name": "base",
+                "text": "aux4.cloud API base URL",
+                "env": "AUX4_CLOUD_API_URL"
+              },
+              {
+                "name": "scope",
+                "text": "aux4.cloud scope",
+                "env": "AUX4_CLOUD_SCOPE"
+              }
+            ]
+          }
+        },
+        {
+          "name": "resolve-token",
+          "private": true,
+          "execute": [
+            "when:${token}:echo \"${token}\"",
+            "when:${token}:exit:0",
+            "set:sso=!aux4 aux4 token 2>/dev/null",
+            "when:${sso}==:exit:1:Not authenticated with aux4.cloud — run: aux4 aux4 login (or set CLOUD_SYNC_TOKEN)",
+            "echo \"${sso}\""
+          ],
+          "help": {
+            "text": "Internal: resolve the bearer token from CLOUD_SYNC_TOKEN, falling back to the logged-in aux4 token",
+            "variables": [
+              {
+                "name": "token",
+                "text": "The machine sync token",
+                "env": "CLOUD_SYNC_TOKEN",
+                "default": ""
+              }
+            ]
+          }
+        },
+        {
+          "name": "print-refs",
+          "private": true,
+          "execute": [
+            "json:printf '%s' value(fields)",
+            "each:echo secret://aux4-cloud/${name}/${item}"
+          ],
+          "help": {
+            "text": "Internal: print secret:// references for one item's field names",
+            "variables": [
+              {
+                "name": "name",
+                "text": "The secret item name"
+              },
+              {
+                "name": "fields",
+                "text": "JSON array of field names"
+              }
+            ]
           }
         },
         {
           "name": "remove",
           "execute": [
-            "set:token=!if [ -n \"$CLOUD_SYNC_TOKEN\" ]; then printf %s \"$CLOUD_SYNC_TOKEN\"; else aux4 aux4 token; fi",
-            "set:base=!printf %s \"$AUX4_CLOUD_API_URL\"",
-            "set:scope=!printf %s \"$AUX4_CLOUD_SCOPE\"",
-            "nout:curl -s -X DELETE -H \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets/${ref}\"",
+            "set:token=!aux4 secret aux4-cloud resolve-token",
+            "nout:aux4 curl request --method DELETE --header \"Authorization: Bearer ${token}\" \"${base}/v1/${scope}/secrets/${ref}\" < /dev/null",
             "echo secret://aux4-cloud/${ref} removed"
           ],
           "help": {
@@ -178,6 +265,22 @@
               {
                 "name": "ref",
                 "text": "The secret item name (e.g., customer_db)"
+              },
+              {
+                "name": "token",
+                "text": "Bearer token; defaults to CLOUD_SYNC_TOKEN, falling back to the logged-in aux4 token",
+                "env": "CLOUD_SYNC_TOKEN",
+                "default": ""
+              },
+              {
+                "name": "base",
+                "text": "aux4.cloud API base URL",
+                "env": "AUX4_CLOUD_API_URL"
+              },
+              {
+                "name": "scope",
+                "text": "aux4.cloud scope",
+                "env": "AUX4_CLOUD_SCOPE"
               }
             ]
           }

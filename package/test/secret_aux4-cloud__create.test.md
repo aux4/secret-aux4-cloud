@@ -15,7 +15,7 @@ aux4 mock stop --port 8873
 ### should print the secret reference
 
 ```execute
-CLOUD_SYNC_TOKEN=test-token AUX4_CLOUD_API_URL=http://localhost:8873/api AUX4_CLOUD_SCOPE=dev aux4 secret aux4-cloud create --item customer_db --fields "username=sa,password=abc123"
+CLOUD_SYNC_TOKEN=test-token AUX4_CLOUD_API_URL=http://localhost:8873/api AUX4_CLOUD_SCOPE=dev aux4 secret aux4-cloud create --item customer_db --fields.username sa --fields.password abc123
 ```
 
 ```expect
@@ -25,7 +25,7 @@ secret://aux4-cloud/customer_db
 ### should PUT a fields body parsed from the key=value pairs
 
 ```execute
-CLOUD_SYNC_TOKEN=test-token AUX4_CLOUD_API_URL=http://localhost:8873/api AUX4_CLOUD_SCOPE=dev aux4 secret aux4-cloud create --item customer_db --fields "username=sa,password=abc123" && aux4 mock verify --port 8873 --method PUT --path /v1/dev/secrets/customer_db --body-contains '"username":"sa"'
+CLOUD_SYNC_TOKEN=test-token AUX4_CLOUD_API_URL=http://localhost:8873/api AUX4_CLOUD_SCOPE=dev aux4 secret aux4-cloud create --item customer_db --fields.username sa --fields.password abc123 && aux4 mock verify --port 8873 --method PUT --path /v1/dev/secrets/customer_db --body-contains '"username":"sa"'
 ```
 
 ```expect:partial
@@ -35,7 +35,7 @@ verify ok: **
 ### should keep equals signs inside a field value
 
 ```execute
-CLOUD_SYNC_TOKEN=test-token AUX4_CLOUD_API_URL=http://localhost:8873/api AUX4_CLOUD_SCOPE=dev aux4 secret aux4-cloud create --item customer_db --fields "token=ab=cd" && aux4 mock verify --port 8873 --method PUT --path /v1/dev/secrets/customer_db --body-contains '"token":"ab=cd"'
+CLOUD_SYNC_TOKEN=test-token AUX4_CLOUD_API_URL=http://localhost:8873/api AUX4_CLOUD_SCOPE=dev aux4 secret aux4-cloud create --item customer_db --fields.token "ab=cd" && aux4 mock verify --port 8873 --method PUT --path /v1/dev/secrets/customer_db --body-contains '"token":"ab=cd"'
 ```
 
 ```expect:partial

@@ -8,11 +8,6 @@ aux4.cloud secret provider for [aux4/secret](https://hub.aux4.io/r/public/packag
 aux4 aux4 pkger install aux4/secret-aux4-cloud
 ```
 
-## Prerequisites
-
-- `jq` installed (auto-installed via the package manager)
-- `curl` installed (auto-installed via the package manager)
-
 ## Configuration
 
 The provider reads all connection settings from environment variables — nothing is stored in config files or passed as command flags:
@@ -29,6 +24,25 @@ Authentication is resolved automatically:
 - Otherwise the current SSO session token is used via `aux4 aux4 token` (the laptop case).
 
 Every request is sent with an `Authorization: Bearer <token>` header. Requests target `${AUX4_CLOUD_API_URL}/v1/${AUX4_CLOUD_SCOPE}/secrets`.
+
+### Using it from your own machine
+
+On an aux4.cloud VM everything is pre-configured. To manage a scope's secrets from your laptop:
+
+1. Sign in once — this opens a device-code flow and grants the `cloud:deploy` scope the API requires:
+
+   ```bash
+   aux4 aux4 login
+   ```
+
+2. Point the provider at the cloud and your scope:
+
+   ```bash
+   export AUX4_CLOUD_API_URL=https://api.aux4.cloud
+   export AUX4_CLOUD_SCOPE=<your-scope>
+   ```
+
+Only the **owner** of the scope can read or write its secrets. If you are not signed in, the provider fails with a clear hint to run `aux4 aux4 login`.
 
 ## Reference Format
 
@@ -79,10 +93,10 @@ secret://aux4-cloud/customer_db updated
 
 ### Create
 
-Create a new secret. Fields are provided as comma-separated `key=value` pairs. The `--vault` and `--category` options are accepted for compatibility with other providers but are ignored by aux4.cloud.
+Create a new secret. Fields are provided as dot-notation flags — one `--fields.<name> <value>` per field. The `--vault` and `--category` options are accepted for compatibility with other providers but are ignored by aux4.cloud.
 
 ```bash
-aux4 secret aux4-cloud create --item customer_db --fields "username=sa,password=abc123"
+aux4 secret aux4-cloud create --item customer_db --fields.username sa --fields.password abc123
 ```
 
 ```text
