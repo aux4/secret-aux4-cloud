@@ -41,6 +41,7 @@ jobs:
       - uses: aux4/action@v1
         with:
           command: test
+          packages: aux4/mock
 
   publish:
     needs: [lint, test]
