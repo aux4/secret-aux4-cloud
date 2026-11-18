@@ -1,6 +1,6 @@
 #### Description
 
-Create a new aux4.cloud secret. Fields are provided as dot-notation flags — one `--fields.<name> <value>` per field — which aux4 collects into a single object. The provider issues `PUT ${AUX4_CLOUD_API_URL}/v1/${AUX4_CLOUD_SCOPE}/secrets/<item>` with the fields as the JSON body and an `Authorization: Bearer <token>` header.
+Create a new aux4.cloud secret. Fields are provided as dot-notation flags — one `--fields.<name> <value>` per field — which aux4 collects into a single object. The provider issues `PUT https://api.aux4.cloud/v1/${AUX4_CLOUD_SCOPE}/secrets/<item>` with the fields as the JSON body and an `Authorization: Bearer <token>` header.
 
 Each value is shell-escaped by aux4, so values may safely contain quotes, spaces, or `=`.
 

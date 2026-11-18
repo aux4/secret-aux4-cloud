@@ -1,6 +1,6 @@
 #### Description
 
-List all aux4.cloud secrets in the current scope as `secret://` references, one line per field. The provider issues `GET ${AUX4_CLOUD_API_URL}/v1/${AUX4_CLOUD_SCOPE}/secrets` with an `Authorization: Bearer <token>` header and expands each item's fields into `secret://aux4-cloud/<item>/<field>` references. The output is plain text intended for humans.
+List all aux4.cloud secrets in the current scope as `secret://` references, one line per field. The provider issues `GET https://api.aux4.cloud/v1/${AUX4_CLOUD_SCOPE}/secrets` with an `Authorization: Bearer <token>` header and expands each item's fields into `secret://aux4-cloud/<item>/<field>` references. The output is plain text intended for humans.
 
 #### Usage
 

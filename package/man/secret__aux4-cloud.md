@@ -10,7 +10,7 @@ Available subcommands:
 - **list** — list all secrets in the scope as `secret://` references
 - **remove** — delete a secret
 
-Connection settings come from the environment: `AUX4_CLOUD_API_URL`, `AUX4_CLOUD_SCOPE`, and (on aux4.cloud VMs) `CLOUD_SYNC_TOKEN`.
+Connection settings come from the environment: `AUX4_CLOUD_SCOPE`, and (on aux4.cloud VMs) `CLOUD_SYNC_TOKEN`.
 
 #### Usage
 

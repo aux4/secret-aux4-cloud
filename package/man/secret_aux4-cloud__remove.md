@@ -1,6 +1,6 @@
 #### Description
 
-Remove a secret from the current aux4.cloud scope. The provider issues `DELETE ${AUX4_CLOUD_API_URL}/v1/${AUX4_CLOUD_SCOPE}/secrets/<ref>` with an `Authorization: Bearer <token>` header. This deletes the entire item and all of its fields.
+Remove a secret from the current aux4.cloud scope. The provider issues `DELETE https://api.aux4.cloud/v1/${AUX4_CLOUD_SCOPE}/secrets/<ref>` with an `Authorization: Bearer <token>` header. This deletes the entire item and all of its fields.
 
 #### Usage
 

@@ -79,7 +79,8 @@
               {
                 "name": "base",
                 "text": "aux4.cloud API base URL",
-                "env": "AUX4_CLOUD_API_URL"
+                "env": "AUX4_CLOUD_API_URL",
+                "default": "https://api.aux4.cloud"
               },
               {
                 "name": "scope",
@@ -122,7 +123,8 @@
               {
                 "name": "base",
                 "text": "aux4.cloud API base URL",
-                "env": "AUX4_CLOUD_API_URL"
+                "env": "AUX4_CLOUD_API_URL",
+                "default": "https://api.aux4.cloud"
               },
               {
                 "name": "scope",
@@ -170,7 +172,8 @@
               {
                 "name": "base",
                 "text": "aux4.cloud API base URL",
-                "env": "AUX4_CLOUD_API_URL"
+                "env": "AUX4_CLOUD_API_URL",
+                "default": "https://api.aux4.cloud"
               },
               {
                 "name": "scope",
@@ -199,7 +202,8 @@
               {
                 "name": "base",
                 "text": "aux4.cloud API base URL",
-                "env": "AUX4_CLOUD_API_URL"
+                "env": "AUX4_CLOUD_API_URL",
+                "default": "https://api.aux4.cloud"
               },
               {
                 "name": "scope",
@@ -275,7 +279,8 @@
               {
                 "name": "base",
                 "text": "aux4.cloud API base URL",
-                "env": "AUX4_CLOUD_API_URL"
+                "env": "AUX4_CLOUD_API_URL",
+                "default": "https://api.aux4.cloud"
               },
               {
                 "name": "scope",

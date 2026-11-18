@@ -10,20 +10,19 @@ aux4 aux4 pkger install aux4/secret-aux4-cloud
 
 ## Configuration
 
-The provider reads all connection settings from environment variables — nothing is stored in config files or passed as command flags:
+The provider connects to aux4.cloud automatically — the only setting you provide is your scope:
 
 | Variable | Description |
 |----------|-------------|
-| `AUX4_CLOUD_API_URL` | Base URL of the aux4.cloud API (e.g. `https://dev.api.aux4.cloud`) |
 | `AUX4_CLOUD_SCOPE` | The scope whose secrets are being accessed |
-| `CLOUD_SYNC_TOKEN` | Machine API key, injected automatically when running on an aux4.cloud VM |
+| `CLOUD_SYNC_TOKEN` | Machine API key, injected automatically when running on an aux4.cloud VM (you never set this) |
 
 Authentication is resolved automatically:
 
 - When `CLOUD_SYNC_TOKEN` is set (the case on an aux4.cloud VM), that machine API key is used.
 - Otherwise the current SSO session token is used via `aux4 aux4 token` (the laptop case).
 
-Every request is sent with an `Authorization: Bearer <token>` header. Requests target `${AUX4_CLOUD_API_URL}/v1/${AUX4_CLOUD_SCOPE}/secrets`.
+Every request goes to `https://api.aux4.cloud/v1/${AUX4_CLOUD_SCOPE}/secrets` with an `Authorization: Bearer <token>` header.
 
 ### Using it from your own machine
 
@@ -35,10 +34,9 @@ On an aux4.cloud VM everything is pre-configured. To manage a scope's secrets fr
    aux4 aux4 login
    ```
 
-2. Point the provider at the cloud and your scope:
+2. Set the scope you want to manage:
 
    ```bash
-   export AUX4_CLOUD_API_URL=https://api.aux4.cloud
    export AUX4_CLOUD_SCOPE=<your-scope>
    ```
 
