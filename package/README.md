@@ -2,6 +2,8 @@
 
 aux4.cloud secret provider for [aux4/secret](https://hub.aux4.io/r/public/packages/aux4/secret). It resolves `secret://aux4-cloud/<item>/<field>` references by talking to the aux4.cloud control-plane API over HTTPS. Secrets are fetched at execution time so credentials never appear in configuration files, and the provider never touches AWS directly.
 
+Changes pushed to the `dev` branch are validated and published to the DEV hub by CI.
+
 ## Installation
 
 ```bash
